@@ -1,0 +1,24 @@
+---
+
+- name: Automated vm maintenance
+  hosts: all 
+  become: true
+  become_method: sudo
+
+  tasks:
+   - name: apt update
+     shell: sudo apt update
+     register:  update_output
+     retries: 1
+     delay: 10
+     until: update_output.rc == 0
+
+   - name: Show update output
+     debug:
+       var: update_output
+
+   - name: Reboot system if update successful
+     shell: init 6
+     async: 1
+     poll: 0
+     when: update_output.rc == 0
