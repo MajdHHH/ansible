@@ -1,0 +1,52 @@
+---
+- name: Automated vm maintenance
+  hosts: all
+  become: true
+  become_method: sudo
+
+  tasks:
+
+    - name: apt update
+      shell: sudo apt update
+      register: update_output
+      retries: 1
+      delay: 10
+      until: update_output.rc == 0
+      changed_when: false
+
+    - name: Show update output
+      debug:
+        var: update_output
+
+    - name: apt check list
+      shell: apt list --upgradable
+      register: output_list
+
+    - name: show list output
+      debug:
+        var: output_list
+
+    - name: create a root user
+      user:
+        name: simone
+        group: root
+
+    - name: add ssh key to the user
+      authorized_key:
+        user: simone
+        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHrZSbYEOUuDhORFnuvszVpQovka+k+NRAVbB9R+bYjs ansible"
+
+    - name: add to sudoers
+      copy:
+        src: ~/ansible/sudoers_simone
+        dest: /etc/sudoers.d/simone
+        owner: root
+        group: root
+        mode: '0440'
+
+    - name: Reboot system if update successful
+      shell: init 6
+      async: 1
+      poll: 0
+      when: update_output.rc == 0
+      changed_when: false

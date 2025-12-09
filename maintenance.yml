@@ -6,6 +6,7 @@
   become_method: sudo
 
   tasks:
+            
    - name: apt update
      shell: sudo apt update
      register:  update_output
@@ -17,6 +18,19 @@
      debug:
        var: update_output
 
+   - name: apt ckeck list
+     shell: apt list --upgradable
+     register:  update_output
+     retries: 1
+     delay: 10
+     until: update_output.rc == 0
+     register: output_list
+
+   - name: show list output
+     debug:
+       var: output_list 
+
+         
    - name: Reboot system if update successful
      shell: init 6
      async: 1

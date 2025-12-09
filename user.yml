@@ -1,0 +1,21 @@
+---
+- hosts: all
+  become: true
+  tasks:
+  - name: create a root user
+    user:
+      name: simone
+      group: root
+
+  - name: add ssh key to the user
+    authorized_key:
+      user: simone
+      key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHrZSbYEOUuDhORFnuvszVpQovka+k+NRAVbB9R+bYjs ansible"
+
+  - name: add to sudoers 
+    copy:
+      src: ~/ansible/sudoers_simone
+      dest: /etc/sudoers.d/simone
+      owner: root
+      group: root  
+      mode: 0440
